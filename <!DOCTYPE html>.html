@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Aurora — a beautiful personal focus dashboard with Pomodoro timer, to-do list, quotes, and quick links." />
+  <title>Aurora — Focus Dashboard</title>
+
+  <!-- Phosphor Icons via CDN -->
+  <script src="https://unpkg.com/@phosphor-icons/web@2.1.1/src/index.js" defer></script>
+
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- Ambient animated background -->
+  <canvas id="ambient-canvas" aria-hidden="true"></canvas>
+
+  <!-- Session done banner (slides in from top) -->
+  <div id="session-banner" role="alert" aria-live="assertive"></div>
+
+  <!-- Toast notification -->
+  <div id="toast" role="status" aria-live="polite"></div>
+
+  <!-- ══════════════════════════════════════════════════════
+       Main App Wrapper
+  ══════════════════════════════════════════════════════ -->
+  <main id="app">
+
+    <!-- ── Header Card ─────────────────────────────────── -->
+    <header id="header" class="card">
+      <div class="header-left">
+        <p id="greeting" class="greeting">Good morning</p>
+        <div id="clock" class="live-clock" aria-live="polite" aria-label="Current time">00:00:00</div>
+        <p id="date-display" class="live-date"></p>
+      </div>
+      <div class="header-right">
+        <!-- Theme toggle -->
+        <button
+          id="theme-toggle"
+          class="icon-btn"
+          aria-label="Toggle light/dark theme"
+          title="Toggle theme">
+          <i class="ph ph-sun" id="theme-icon"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- ── Main Grid ───────────────────────────────────── -->
+    <div id="main-grid">
+
+      <!-- ── Pomodoro Timer Card ─────────────────────── -->
+      <section id="pomodoro-card" class="card" aria-label="Pomodoro timer">
+        <p class="card-title"><i class="ph ph-timer"></i> Pomodoro</p>
+
+        <div class="pomodoro-inner">
+
+          <!-- Circular progress ring -->
+          <div class="ring-wrap" role="timer" aria-label="Pomodoro countdown">
+            <svg class="ring-svg" width="170" height="170" viewBox="0 0 170 170" aria-hidden="true">
+              <defs>
+                <linearGradient id="ring-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%"   stop-color="#7c6af7" />
+                  <stop offset="100%" stop-color="#a89cf8" />
+                </linearGradient>
+              </defs>
+              <circle class="ring-track"    cx="85" cy="85" r="76" />
+              <circle class="ring-progress" cx="85" cy="85" r="76"
+                      id="pomo-ring"
+                      stroke-dasharray="477.52"
+                      stroke-dashoffset="0" />
+            </svg>
+            <div class="ring-center">
+              <span id="pomo-time" class="pomo-time">25:00</span>
+              <span id="pomo-label" class="pomo-label">Focus</span>
+            </div>
+          </div>
+
+          <!-- Controls -->
+          <div class="pomo-controls">
+            <button id="pomo-start" class="btn btn-primary" aria-label="Start timer">
+              <i class="ph ph-play"></i> Start
+            </button>
+            <button id="pomo-reset" class="btn btn-ghost" aria-label="Reset timer">
+              <i class="ph ph-arrow-counter-clockwise"></i> Reset
+            </button>
+          </div>
+
+          <!-- Settings row -->
+          <div class="pomo-settings-row" aria-label="Timer settings">
+            <span id="pomo-settings-info">25 min focus · 5 min break</span>
+            <button id="pomo-settings-btn" aria-label="Open timer settings">Edit</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── To-Do Card ──────────────────────────────── -->
+      <section id="todo-card" class="card" aria-label="To-do list">
+        <p class="card-title"><i class="ph ph-check-square"></i> Tasks</p>
+
+        <!-- Add task input -->
+        <div class="todo-add-row">
+          <input
+            id="todo-input"
+            type="text"
+            class="input-field"
+            placeholder="Add a new task…"
+            maxlength="200"
+            aria-label="New task" />
+          <button id="todo-add-btn" class="btn btn-primary" aria-label="Add task">
+            <i class="ph ph-plus"></i>
+          </button>
+        </div>
+
+        <!-- Filter tabs -->
+        <div class="todo-filters" role="tablist" aria-label="Task filters">
+          <button class="filter-btn active" data-filter="all"       role="tab" aria-selected="true">All</button>
+          <button class="filter-btn"        data-filter="active"    role="tab" aria-selected="false">Active</button>
+          <button class="filter-btn"        data-filter="completed" role="tab" aria-selected="false">Done</button>
+        </div>
+
+        <!-- Live count -->
+        <p id="todo-count" class="todo-count" aria-live="polite">0 tasks remaining</p>
+
+        <!-- Task list -->
+        <ul id="todo-list" class="todo-list" aria-label="Task list"></ul>
+      </section>
+
+      <!-- ── Daily Quote Card ────────────────────────── -->
+      <section id="quote-card" class="card" aria-label="Daily quote">
+        <p class="card-title"><i class="ph ph-quotes"></i> Daily Quote</p>
+        <blockquote>
+          <p id="quote-text"  class="quote-text"></p>
+          <footer id="quote-author" class="quote-author"></footer>
+        </blockquote>
+        <div class="quote-footer">
+          <button id="new-quote-btn" class="btn btn-ghost" aria-label="Show a new quote">
+            <i class="ph ph-shuffle"></i> New quote
+          </button>
+        </div>
+      </section>
+
+      <!-- ── Quick Links Card ────────────────────────── -->
+      <section id="links-card" class="card" aria-label="Quick links">
+        <div class="links-header">
+          <p class="card-title" style="margin-bottom:0"><i class="ph ph-link"></i> Quick Links</p>
+          <button id="add-link-btn" class="btn btn-ghost" aria-label="Add new quick link">
+            <i class="ph ph-plus"></i> Add link
+          </button>
+        </div>
+        <div id="links-grid" class="links-grid" aria-label="Saved links"></div>
+      </section>
+
+    </div><!-- /#main-grid -->
+  </main><!-- /#app -->
+
+  <!-- ══════════════════════════════════════════════════════
+       Modals
+  ══════════════════════════════════════════════════════ -->
+
+  <!-- Pomodoro Settings Modal -->
+  <div id="pomo-settings-modal" class="modal-overlay" role="dialog"
+       aria-modal="true" aria-labelledby="pomo-modal-title">
+    <div class="modal">
+      <h2 id="pomo-modal-title">Timer Settings</h2>
+      <div class="modal-field">
+        <label for="focus-duration-input">Focus duration (minutes)</label>
+        <input type="number" id="focus-duration-input" min="1" max="120" value="25" />
+      </div>
+      <div class="modal-field">
+        <label for="break-duration-input">Break duration (minutes)</label>
+        <input type="number" id="break-duration-input" min="1" max="60" value="5" />
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" id="pomo-modal-cancel">Cancel</button>
+        <button class="btn btn-primary" id="pomo-modal-save">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Quick Link Modal -->
+  <div id="link-modal" class="modal-overlay" role="dialog"
+       aria-modal="true" aria-labelledby="link-modal-title">
+    <div class="modal">
+      <h2 id="link-modal-title">Add Quick Link</h2>
+      <div class="modal-field">
+        <label for="link-name-input">Name</label>
+        <input type="text" id="link-name-input" placeholder="e.g. GitHub" maxlength="30" />
+      </div>
+      <div class="modal-field">
+        <label for="link-url-input">URL</label>
+        <input type="url" id="link-url-input" placeholder="https://example.com" />
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" id="link-modal-cancel">Cancel</button>
+        <button class="btn btn-primary" id="link-modal-save">Add link</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
